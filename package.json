@@ -1,0 +1,26 @@
+{
+	"name": "react-express-boilerplate",
+	"version": "0.1.0",
+	"private": true,
+	"dependencies": {
+		"axios": "^0.18.0",
+		"express": "^4.16.3",
+		"npm": "^6.1.0",
+		"react": "^16.4.0",
+		"react-dom": "^16.4.0",
+		"react-scripts": "1.1.4"
+	},
+	"proxy": "http://localhost:8080",
+	"scripts": {
+		"start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
+		"client": "react-scripts start",
+		"build": "react-scripts build",
+		"test": "react-scripts test --env=jsdom",
+		"eject": "react-scripts eject",
+		"server": "nodemon lib/server.js --ignore src/"
+	},
+	"devDependencies": {
+		"concurrently": "^3.5.1",
+		"nodemon": "^1.17.5"
+	}
+}
