@@ -14,7 +14,7 @@ export class History extends Component {
 				<Heading size={600}>Earlier</Heading>
 				<HistoryContainer>
 					{this.state.history.map((history, i) => (
-						<Card cursor="pointer" key={i} width={300} height={100} elevation={1} padding={17} paddingY={15} hoverElevation={3}>
+						<Card cursor="pointer" key={i} width={300} height={100} elevation={0} padding={17} paddingY={15} hoverElevation={2}>
 							<Flex column justifyBetween full>
 								<FlexItem>
 									<Text>{history.name} fed the dog</Text>

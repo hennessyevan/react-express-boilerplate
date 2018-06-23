@@ -25,7 +25,10 @@ class App extends Component {
 		return (
 			<Container>
 				<Heading marginBottom={25} size={900}>
-					🐶 The Dog Feed
+					<span role="img" aria-label="dog logo emoji">
+						🐶{" "}
+					</span>
+					The Dog Feed
 				</Heading>
 				<Today />
 				<History />
@@ -35,8 +38,8 @@ class App extends Component {
 }
 
 const Container = styled.div`
-	width: 1200px;
-	padding: 4vw 0;
+	max-width: 1200px;
+	padding: 4vw;
 	margin: 0 auto;
 `;
 
