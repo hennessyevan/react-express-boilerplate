@@ -1,22 +1,21 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
+import styled from "styled-components";
 import axios from "axios";
+import { Heading } from "evergreen-ui";
+import { History, Today } from "./components";
 
 class App extends Component {
-	state = {
-		healthcheck: "",
-		login: {}
-	};
 	async componentDidMount() {
 		try {
 			const healthcheck = await axios.get("/healthcheck");
-			this.setState({ healthcheck: healthcheck.data });
+			console.log({ healthcheck: healthcheck.data });
 		} catch (error) {
 			console.log(error);
 		}
 
 		try {
 			const login = await axios.post("/login");
-			this.setState({ login: login.data });
+			console.log({ login: login.data });
 		} catch (error) {
 			console.log(error);
 		}
@@ -24,12 +23,21 @@ class App extends Component {
 
 	render() {
 		return (
-			<Fragment>
-				<pre>Get Healthcheck: {this.state.healthcheck}</pre>
-				<pre>Login response: {JSON.stringify(this.state.login)}</pre>
-			</Fragment>
+			<Container>
+				<Heading marginBottom={25} size={900}>
+					🐶 The Dog Feed
+				</Heading>
+				<Today />
+				<History />
+			</Container>
 		);
 	}
 }
+
+const Container = styled.div`
+	width: 1200px;
+	padding: 4vw 0;
+	margin: 0 auto;
+`;
 
 export default App;
