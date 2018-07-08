@@ -78,7 +78,7 @@ export class Today extends Component {
 										<TimeOfDay time={entry.time} />
 									</FlexItem>
 									<FlexItem>
-										<Text>{moment(entry.time, "HHmm").format("h:mma")}</Text>
+										<Text>{moment(entry.time).format("h:mma")}</Text>
 									</FlexItem>
 								</Flex>
 							</Flex>
