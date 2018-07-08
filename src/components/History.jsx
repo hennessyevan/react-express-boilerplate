@@ -1,38 +1,83 @@
 import React, { Fragment, Component } from "react";
 import styled from "styled-components";
-import { Card, Heading, Text } from "evergreen-ui";
+import axios from "axios";
+import { Card, Heading, Text, Dialog } from "evergreen-ui";
 import Flex, { FlexItem } from "styled-flex-component";
 import moment from "moment";
 
 export class History extends Component {
 	state = {
-		history: [{ name: "Evan", date: "20180622T080910" }, { name: "User", date: "20180621T181810" }]
+		history: [],
+		dialogIsOpen: false
 	};
+
+	async componentDidMount() {
+		try {
+			const entries = await axios.get("/entries/history");
+			this.setState({
+				history: [...entries.data]
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	openDialog = () => {
+		this.setState({
+			dialogIsOpen: true
+		});
+	};
+
 	render() {
-		return (
-			<Fragment>
-				<Heading size={600}>Earlier</Heading>
-				<HistoryContainer>
-					{this.state.history.map((history, i) => (
-						<Card cursor="pointer" key={i} width={300} height={100} elevation={0} padding={17} paddingY={15} hoverElevation={2}>
-							<Flex column justifyBetween full>
-								<FlexItem>
-									<Text>{history.name} fed the dog</Text>
-								</FlexItem>
-								<Flex justifyBetween>
+		const { history, dialogIsOpen } = this.state;
+		if (this.state.history.length) {
+			return (
+				<Fragment>
+					<Heading size={600}>Earlier</Heading>
+					<HistoryContainer>
+						{history.map(entry => (
+							<Card
+								onClick={this.openDialog}
+								cursor="pointer"
+								key={entry._id}
+								width={300}
+								height={100}
+								elevation={0}
+								padding={17}
+								paddingY={15}
+								hoverElevation={2}>
+								<Flex column justifyBetween full>
 									<FlexItem>
-										<Text>{moment(history.date).format("dddd")}</Text>
+										<Text>{entry.user.firstName} fed the dog</Text>
 									</FlexItem>
-									<FlexItem>
-										<Text>{moment(history.date).format("h:mma")}</Text>
-									</FlexItem>
+									<Flex justifyBetween>
+										<FlexItem>
+											<Text>{moment(entry.time).format("dddd")}</Text>
+										</FlexItem>
+										<FlexItem>
+											<Text>{moment(entry.time).format("h:mma")}</Text>
+										</FlexItem>
+									</Flex>
 								</Flex>
-							</Flex>
-						</Card>
-					))}
-				</HistoryContainer>
-			</Fragment>
-		);
+							</Card>
+						))}
+					</HistoryContainer>
+					<Dialog
+						isShown={dialogIsOpen}
+						title="Title"
+						onCloseComplete={() =>
+							this.setState({
+								dialogIsOpen: false
+							})
+						}
+						hasFooter={false}>
+						<Text>Hello</Text>
+					</Dialog>
+				</Fragment>
+			);
+		} else {
+			return null;
+		}
 	}
 }
 

@@ -1,12 +1,14 @@
 {
-	"name": "react-express-boilerplate",
+	"name": "the-dog-feed",
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
 		"axios": "^0.18.0",
+		"body-parser": "^1.18.3",
 		"evergreen-ui": "^3.2.3",
 		"express": "^4.16.3",
 		"moment": "^2.22.2",
+		"mongoose": "^5.2.1",
 		"npm": "^6.1.0",
 		"react": "^16.4.0",
 		"react-dom": "^16.4.0",
@@ -22,7 +24,8 @@
 		"build": "react-scripts build",
 		"test": "react-scripts test --env=jsdom",
 		"eject": "react-scripts eject",
-		"server": "nodemon lib/server.js --ignore src/"
+		"server": "nodemon lib/server.js --ignore src/",
+		"seeds": "node lib/seeds/index.js"
 	},
 	"devDependencies": {
 		"concurrently": "^3.5.1",
