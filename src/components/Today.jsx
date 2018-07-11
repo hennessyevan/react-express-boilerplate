@@ -1,7 +1,9 @@
 import React, { Fragment, Component } from "react";
+import styled from "styled-components";
+import posed, { PoseGroup, tween, spring } from "react-pose";
 import { TimeOfDay } from "./TimeOfDay";
-import { IoIosPlus } from "react-icons/lib/io";
-import { Card, Heading, Text, Dialog } from "evergreen-ui";
+import { IoIosPlus, IoIosCheckmark, IoIosClose } from "react-icons/lib/io";
+import { Card, Heading, Text, Dialog, toaster } from "evergreen-ui";
 import Flex, { FlexItem } from "styled-flex-component";
 import axios from "axios";
 import moment from "moment";
@@ -11,7 +13,9 @@ export class Today extends Component {
 		today: [],
 		schedule: [],
 		dialogIsOpen: false,
-		dialogContents: ""
+		dialogContents: "",
+		petName: "",
+		startCardDeletion: false
 	};
 
 	async componentDidMount() {
@@ -19,87 +23,165 @@ export class Today extends Component {
 		try {
 			const pet = await axios.get("/pets/5b415dc0ece44d5eabd4eccc");
 			this.setState({
-				schedule: pet.data.schedule
+				schedule: pet.data.schedule,
+				petName: pet.data.name
 			});
 		} catch (error) {
 			console.log(error);
 		}
 
+		this.getTodaysEntries();
+	}
+
+	getTodaysEntries = async () => {
 		// get pet entries for today
 		try {
 			const entries = await axios.get("/entries/today");
 			this.setState({
-				today: [...entries.data]
+				today: entries.data
 			});
 		} catch (error) {
 			console.log(error);
 		}
-	}
+	};
 
-	openDialog = (id, name) => {
-		const contents = this.state.schedule.filter(entry => entry.id === id);
+	openDialog = (name, description, time) => {
 		this.setState({
 			dialogIsOpen: true,
-			dialogContents: contents[0].description,
-			dialogTitle: `${name} fed the dog`
+			dialogContents: description,
+			dialogTitle: `${name} fed ${this.state.petName} at ${moment(time).format("h:mma")}`
 		});
+	};
+
+	addEntry = async (pet, user, scheduledTime, time) => {
+		time = time || moment();
+		if (!moment(time).isBetween(moment(scheduledTime.startTime, "HHmm"), moment(scheduledTime.endTime, "HHmm"))) {
+			toaster.warning(`Too Early`, { description: `Please wait until ${moment(scheduledTime.startTime, "HHmm").format("ha")}` });
+		} else {
+			try {
+				await axios.post("/entries/add", { user, pet, time });
+				this.getTodaysEntries();
+			} catch (error) {
+				console.error(error);
+			}
+		}
 	};
 
 	checkTime = scheduledTime => {
 		const { today } = this.state;
-		const match = today.filter(time => moment(time).isBetween(moment(scheduledTime.startTime, "HHmm"), moment(scheduledTime.endTime, "HHmm")));
-		console.log(match);
-		return match;
+		const match = today.filter(time =>
+			moment(time.updatedAt).isBetween(moment(scheduledTime.startTime, "HHmm"), moment(scheduledTime.endTime, "HHmm"))
+		);
+		return !today.length ? false : match.length;
+	};
+
+	deleteEntry = async (x, entry) => {
+		if (x <= -80) {
+			try {
+				await axios.delete(`/entries/${entry._id}`);
+				console.log(`removed ${entry._id}`);
+				const newState = await this.state.today.filter(item => item._id !== entry._id);
+				await this.setState({ today: newState });
+			} catch (error) {
+				console.error(error);
+			}
+		}
+	};
+
+	opportunityPassed = scheduledTime => {
+		return moment().isAfter(moment(scheduledTime.endTime, "HHmm"));
 	};
 
 	render() {
-		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle } = this.state;
+		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName, startCardDeletion } = this.state;
+		// onClick={entry.description && (() => this.openDialog(entry.user.firstName, entry.description, entry.time))}
 		return (
 			<Fragment>
-				<Heading size={600}>Today</Heading>
 				<TodayContainer wrap>
-					{today.map(entry => (
-						<Card
-							key={entry._id}
-							onClick={entry.description && (() => this.openDialog(entry._id, entry.user.firstName))}
-							width={300}
-							height={100}
-							marginRight={15}
-							marginBottom={15}
-							paddingX={17}
-							paddingY={15}
-							{...full}>
-							<Flex justifyBetween column full>
-								<FlexItem>
-									<Text>{entry.user.firstName} fed the dog</Text>
-								</FlexItem>
-								<Flex justifyBetween>
+					<Heading style={{ flexBasis: "100%", marginBottom: 10 }} size={600}>
+						Today
+					</Heading>
+					{today.map((entry, i) => (
+						<FlexItem order={moment(entry.updatedAt).format("H")}>
+							<TodayCard
+								key={entry._id}
+								ref={entry._id}
+								width={300}
+								height={100}
+								marginBottom={15}
+								paddingX={17}
+								paddingY={15}
+								index={i}
+								onDragEnd={() => {
+									this.deleteEntry(this.x, entry);
+								}}
+								onValueChange={{ x: x => (this.x = x) }}
+								{...full}>
+								<Flex justifyBetween column full>
 									<FlexItem>
-										<TimeOfDay time={entry.time} />
+										<Flex alignCenter>
+											<IoIosCheckmark size={18} color="#47b881" />
+											<Text marginLeft={5}>
+												{entry.user.firstName} fed {petName}
+											</Text>
+										</Flex>
 									</FlexItem>
-									<FlexItem>
-										<Text>{moment(entry.time).format("h:mma")}</Text>
-									</FlexItem>
-								</Flex>
-							</Flex>
-						</Card>
-					))}
-					{schedule.map(
-						scheduledTime =>
-							this.checkTime(scheduledTime) ? (
-								<Card key={scheduledTime._id} width={300} height={100} padding={15} paddingY={10} {...empty}>
-									<Flex center full>
+									<Flex justifyBetween>
 										<FlexItem>
-											<IoIosPlus size={28} color="#707070" />
-											<Text marginLeft={10}>Add Entry</Text>
+											<TimeOfDay time={entry.updatedAt} format="" />
 										</FlexItem>
-										<FlexItem alignBottom>
-											<TimeOfDay time={scheduledTime.startTime} />
+										<FlexItem>
+											<Text>{moment(entry.updatedAt).format("h:mma")}</Text>
 										</FlexItem>
 									</Flex>
-								</Card>
-							) : null
-					)}
+								</Flex>
+							</TodayCard>
+						</FlexItem>
+					))}
+					{schedule &&
+						schedule.map(
+							(scheduledTime, i) =>
+								!this.checkTime(scheduledTime) ? (
+									<FlexItem full order={moment(scheduledTime.startTime, "HHmm").format("H")}>
+										<PoseGroup animateOnMount={true}>
+											{this.opportunityPassed(scheduledTime) ? (
+												<EmptyCard key={scheduledTime._id} i={i} width={300} height={100} marginBottom={15} padding={15} paddingY={10} {...disabled}>
+													<Flex full center column style={{ position: "relative" }}>
+														<FlexItem>
+															<IoIosClose size={28} color="#f36331" />
+														</FlexItem>
+														<FlexItem style={{ position: "absolute", bottom: 0, left: 0 }}>
+															<TimeOfDay time={scheduledTime.startTime} format="HHmm" />
+														</FlexItem>
+													</Flex>
+												</EmptyCard>
+											) : (
+												<EmptyCard
+													key={scheduledTime._id}
+													onClick={() => this.addEntry("5b415dc0ece44d5eabd4eccc", "5b43c12a667060aeb4d2478a", scheduledTime)}
+													width={300}
+													height={100}
+													marginBottom={15}
+													padding={15}
+													paddingY={10}
+													i={i}
+													{...empty}>
+													<Flex full center column style={{ position: "relative" }}>
+														<FlexItem>
+															<Flex alignCenter>
+																<IoIosPlus size={28} color="#707070" />
+															</Flex>
+														</FlexItem>
+														<FlexItem style={{ position: "absolute", bottom: 0, left: 0 }}>
+															<TimeOfDay time={scheduledTime.startTime} format="HHmm" />
+														</FlexItem>
+													</Flex>
+												</EmptyCard>
+											)}
+										</PoseGroup>
+									</FlexItem>
+								) : null
+						)}
 				</TodayContainer>
 				<Dialog
 					isShown={dialogIsOpen}
@@ -119,11 +201,112 @@ export class Today extends Component {
 
 const TodayContainer = Flex.extend`
 	margin: 25px 0;
+
+	@media screen and (max-width: 767px) {
+		display: grid;
+		grid-gap: 10px;
+		grid-template-areas: 1fr;
+		justify-content: center;
+	}
 `;
+
+const EmptyCard = styled(
+	posed(Card)({
+		enter: {
+			opacity: 1,
+			scale: 1,
+			delay: ({ i }) => i * 150,
+			transition: {
+				opacity: {
+					ease: "easeInOut",
+					duration: 100
+				},
+				default: {
+					type: "spring",
+					stiffness: 200,
+					damping: 10
+				}
+			}
+		},
+		exit: {
+			opacity: 0,
+			scale: 0.9,
+			delay: ({ i }) => i * 150 + 150,
+			transition: {
+				opacity: {
+					ease: "easeInOut",
+					duration: 100
+				},
+				default: {
+					type: "spring",
+					stiffness: 200,
+					damping: 10
+				}
+			}
+		}
+	})
+)`
+	margin-right: 15px;
+
+	@media screen and (max-width: 767px) {
+		margin-right: 0;
+	}
+`;
+
+const TodayCard = styled(
+	posed(Card)({
+		draggable: "x",
+		dragBounds: { left: -100, right: 0 },
+		onDragEnd: { display: "none" },
+		passive: {
+			opacity: ["x", v => (v <= -90 ? 0 : 1)],
+			backgroundColor: ["x", v => (v <= -50 ? "#ffe5e5" : "#ffffff")]
+		},
+		enter: {
+			opacity: 1,
+			scale: 1,
+			display: "block",
+			transition: {
+				default: {
+					type: "spring",
+					stiffness: 200,
+					damping: 10
+				}
+			}
+		},
+		exit: {
+			opacity: 0,
+			scale: 0.95,
+			display: "none",
+			transition: {
+				default: {
+					type: "spring",
+					stiffness: 200,
+					damping: 10
+				}
+			}
+		}
+	})
+)`
+	background-color: white;
+	margin-right: 15px;
+	transition: 300ms;
+
+	@media screen and (max-width: 767px) {
+		margin-right: 0;
+	}
+`;
+
+const disabled = {
+	appearance: "tint3",
+	cursor: "default"
+};
 
 const empty = {
 	cursor: "pointer",
-	appearance: "tint3"
+	appearance: "tint3",
+	interactive: true,
+	hoverElevation: 1
 };
 
 const full = {

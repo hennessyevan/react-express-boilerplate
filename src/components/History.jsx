@@ -1,6 +1,7 @@
 import React, { Fragment, Component } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import posed, { PoseGroup } from "react-pose";
 import { Card, Heading, Text, Dialog } from "evergreen-ui";
 import Flex, { FlexItem } from "styled-flex-component";
 import moment from "moment";
@@ -8,7 +9,9 @@ import moment from "moment";
 export class History extends Component {
 	state = {
 		history: [],
-		dialogIsOpen: false
+		dialogIsOpen: false,
+		dialogDescription: "",
+		dialogTitle: ""
 	};
 
 	async componentDidMount() {
@@ -22,56 +25,63 @@ export class History extends Component {
 		}
 	}
 
-	openDialog = () => {
+	openDialog = (name, dialogDescription, time) => {
 		this.setState({
-			dialogIsOpen: true
+			dialogIsOpen: true,
+			dialogTitle: `${name} fed ${this.props.petName} ${moment(time).from(moment())}`,
+			dialogDescription
 		});
 	};
 
 	render() {
-		const { history, dialogIsOpen } = this.state;
+		const { history, dialogIsOpen, dialogTitle, dialogDescription } = this.state;
 		if (this.state.history.length) {
 			return (
 				<Fragment>
-					<Heading size={600}>Earlier</Heading>
 					<HistoryContainer>
-						{history.map(entry => (
-							<Card
-								onClick={this.openDialog}
-								cursor="pointer"
-								key={entry._id}
-								width={300}
-								height={100}
-								elevation={0}
-								padding={17}
-								paddingY={15}
-								hoverElevation={2}>
-								<Flex column justifyBetween full>
-									<FlexItem>
-										<Text>{entry.user.firstName} fed the dog</Text>
-									</FlexItem>
-									<Flex justifyBetween>
+						<Heading size={600}>Earlier</Heading>
+						<PoseGroup animateOnMount={true}>
+							{history.map((entry, i) => (
+								<HistoryCard
+									onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt)}
+									cursor="pointer"
+									key={entry._id}
+									width={300}
+									height={100}
+									elevation={0}
+									padding={17}
+									paddingY={15}
+									i={i}
+									hoverElevation={2}>
+									<Flex column justifyBetween full>
 										<FlexItem>
-											<Text>{moment(entry.time).format("dddd")}</Text>
+											<Text>
+												{entry.user.firstName} fed {this.props.petName}
+											</Text>
 										</FlexItem>
-										<FlexItem>
-											<Text>{moment(entry.time).format("h:mma")}</Text>
-										</FlexItem>
+										<Flex justifyBetween>
+											<FlexItem>
+												<Text>{moment(entry.updatedAt).format("dddd")}</Text>
+											</FlexItem>
+											<FlexItem>
+												<Text>{moment(entry.updatedAt).format("h:mma")}</Text>
+											</FlexItem>
+										</Flex>
 									</Flex>
-								</Flex>
-							</Card>
-						))}
+								</HistoryCard>
+							))}
+						</PoseGroup>
 					</HistoryContainer>
 					<Dialog
 						isShown={dialogIsOpen}
-						title="Title"
+						title={dialogTitle}
 						onCloseComplete={() =>
 							this.setState({
 								dialogIsOpen: false
 							})
 						}
 						hasFooter={false}>
-						<Text>Hello</Text>
+						<Text>{dialogDescription}</Text>
 					</Dialog>
 				</Fragment>
 			);
@@ -81,9 +91,30 @@ export class History extends Component {
 	}
 }
 
+const HistoryCard = posed(Card)({
+	enter: {
+		opacity: 1,
+		y: 0,
+		delay: ({ i }) => i * 175 + 600,
+		transition: {
+			type: "spring",
+			stiffness: 300,
+			damping: 15
+		}
+	},
+	exit: {
+		opacity: 0,
+		y: 10
+	}
+});
+
 const HistoryContainer = styled.div`
 	margin-top: 10px;
 	display: grid;
 	grid-template-areas: 1fr;
 	grid-gap: 10px;
+
+	@media screen and (max-width: 767px) {
+		justify-content: center;
+	}
 `;
