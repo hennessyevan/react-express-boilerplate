@@ -1,19 +1,19 @@
-import React, { Fragment } from "react";
+import React from "react";
 import styled from "styled-components";
 import { History, Today, Profile } from "./";
 import Flex from "styled-flex-component";
 import { Heading } from "evergreen-ui";
 
-export const LoggedIn = ({ petName, logout, user }) => (
+export const LoggedIn = ({ logout, user, refresh }) => (
 	<LoggedInContainer>
 		<ProfileContainer>
-			<Profile logout={logout} {...user} />
+			<Profile refresh={refresh} logout={logout} {...user} />
 		</ProfileContainer>
 		<Heading marginBottom={25} size={900}>
-			{petName && `${petName}'s `}Dog Feed
+			{user.user.pets && `${user.user.pets[0].name}'s `}Dog Feed
 		</Heading>
-		<Today />
-		<History petName={petName} />
+		<Today user={user.user} />
+		<History />
 	</LoggedInContainer>
 );
 

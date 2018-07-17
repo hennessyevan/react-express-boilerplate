@@ -1,47 +1,51 @@
-import React, { Fragment, Component } from "react";
-import styled from "styled-components";
-import posed, { PoseGroup, tween, spring } from "react-pose";
-import { TimeOfDay } from "./TimeOfDay";
-import { IoIosPlus, IoIosCheckmark, IoIosClose } from "react-icons/lib/io";
-import { Card, Heading, Text, Dialog, toaster } from "evergreen-ui";
-import Flex, { FlexItem } from "styled-flex-component";
 import axios from "axios";
+import { Card, Dialog, Heading, Text, toaster } from "evergreen-ui";
 import moment from "moment";
+import React, { Component, Fragment } from "react";
+import { IoIosCheckmark, IoIosClose, IoIosPlus } from "react-icons/lib/io";
+import posed, { PoseGroup } from "react-pose";
+import { transform } from "popmotion";
+import styled from "styled-components";
+import Flex, { FlexItem } from "styled-flex-component";
+import { TimeOfDay } from "./TimeOfDay";
+import { getToken } from "../tokenservice";
 
 export class Today extends Component {
-	state = {
-		today: [],
-		schedule: [],
-		dialogIsOpen: false,
-		dialogContents: "",
-		petName: "",
-		startCardDeletion: false
-	};
+	constructor(props) {
+		super(props);
+		this.state = {
+			today: [],
+			schedule: props.user.pets && props.user.pets[0].schedule,
+			petName: props.user.pets && props.user.pets[0].name,
+			dialogIsOpen: false,
+			dialogContents: "",
+			startCardDeletion: false
+		};
+	}
 
 	async componentDidMount() {
 		//get pet schedule
 		try {
-			const pet = await axios.get("/pets/5b415dc0ece44d5eabd4eccc");
-			this.setState({
-				schedule: pet.data.schedule,
-				petName: pet.data.name
-			});
+			this.getTodaysEntries();
 		} catch (error) {
-			console.log(error);
+			toaster.danger(`Unable to load data`, { description: "Please refresh the page" });
 		}
-
-		this.getTodaysEntries();
 	}
 
 	getTodaysEntries = async () => {
 		// get pet entries for today
 		try {
-			const entries = await axios.get("/entries/today");
+			const token = getToken();
+			const entries = await axios.get("/entries/today", {
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
 			this.setState({
 				today: entries.data
 			});
 		} catch (error) {
-			console.log(error);
+			toaster.danger(`Unable to load data`, { description: "Please refresh the page" });
 		}
 	};
 
@@ -53,16 +57,26 @@ export class Today extends Component {
 		});
 	};
 
-	addEntry = async (pet, user, scheduledTime, time) => {
-		time = time || moment();
+	addEntry = async (petID, userID, scheduledTime) => {
+		console.log({ petID, userID });
+		const time = moment();
 		if (!moment(time).isBetween(moment(scheduledTime.startTime, "HHmm"), moment(scheduledTime.endTime, "HHmm"))) {
 			toaster.warning(`Too Early`, { description: `Please wait until ${moment(scheduledTime.startTime, "HHmm").format("ha")}` });
 		} else {
 			try {
-				await axios.post("/entries/add", { user, pet, time });
+				const token = getToken();
+				await axios.post(
+					"/entries/add",
+					{ user: userID, pet: petID },
+					{
+						headers: {
+							Authorization: `Bearer ${token}`
+						}
+					}
+				);
 				this.getTodaysEntries();
 			} catch (error) {
-				console.error(error);
+				toaster.danger(`Unable to save entry`, { description: "Please try again later" });
 			}
 		}
 	};
@@ -83,7 +97,7 @@ export class Today extends Component {
 				const newState = await this.state.today.filter(item => item._id !== entry._id);
 				await this.setState({ today: newState });
 			} catch (error) {
-				console.error(error);
+				toaster.danger(`Unable to delete entry`);
 			}
 		}
 	};
@@ -93,7 +107,7 @@ export class Today extends Component {
 	};
 
 	render() {
-		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName, startCardDeletion } = this.state;
+		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName } = this.state;
 		// onClick={entry.description && (() => this.openDialog(entry.user.firstName, entry.description, entry.time))}
 		return (
 			<Fragment>
@@ -102,7 +116,7 @@ export class Today extends Component {
 						Today
 					</Heading>
 					{today.map((entry, i) => (
-						<FlexItem order={moment(entry.updatedAt).format("H")}>
+						<FlexItem key={entry._id} order={moment(entry.updatedAt).format("H")}>
 							<TodayCard
 								key={entry._id}
 								ref={entry._id}
@@ -142,7 +156,7 @@ export class Today extends Component {
 						schedule.map(
 							(scheduledTime, i) =>
 								!this.checkTime(scheduledTime) ? (
-									<FlexItem full order={moment(scheduledTime.startTime, "HHmm").format("H")}>
+									<FlexItem key={scheduledTime._id} full order={moment(scheduledTime.startTime, "HHmm").format("H")}>
 										<PoseGroup animateOnMount={true}>
 											{this.opportunityPassed(scheduledTime) ? (
 												<EmptyCard key={scheduledTime._id} i={i} width={300} height={100} marginBottom={15} padding={15} paddingY={10} {...disabled}>
@@ -158,7 +172,7 @@ export class Today extends Component {
 											) : (
 												<EmptyCard
 													key={scheduledTime._id}
-													onClick={() => this.addEntry("5b415dc0ece44d5eabd4eccc", "5b43c12a667060aeb4d2478a", scheduledTime)}
+													onClick={() => this.addEntry(this.props.user.pets[0]._id, this.props.user._id, scheduledTime)}
 													width={300}
 													height={100}
 													marginBottom={15}
@@ -259,14 +273,17 @@ const TodayCard = styled(
 		dragBounds: { left: -100, right: 0 },
 		onDragEnd: { display: "none" },
 		passive: {
-			opacity: ["x", v => (v <= -90 ? 0 : 1)],
-			backgroundColor: ["x", v => (v <= -50 ? "#ffe5e5" : "#ffffff")]
+			opacity: ["x", transform.interpolate([-100, -35, 0, 0], [0, 1, 1, 1])]
 		},
 		enter: {
 			opacity: 1,
 			scale: 1,
-			display: "block",
+			delay: ({ i }) => i * 150,
 			transition: {
+				opacity: {
+					ease: "easeInOut",
+					duration: 100
+				},
 				default: {
 					type: "spring",
 					stiffness: 200,
@@ -276,9 +293,13 @@ const TodayCard = styled(
 		},
 		exit: {
 			opacity: 0,
-			scale: 0.95,
-			display: "none",
+			scale: 0.9,
+			delay: ({ i }) => i * 150 + 150,
 			transition: {
+				opacity: {
+					ease: "easeInOut",
+					duration: 100
+				},
 				default: {
 					type: "spring",
 					stiffness: 200,
@@ -290,7 +311,7 @@ const TodayCard = styled(
 )`
 	background-color: white;
 	margin-right: 15px;
-	transition: 300ms;
+	transition: opacity 300ms;
 
 	@media screen and (max-width: 767px) {
 		margin-right: 0;
@@ -305,7 +326,7 @@ const disabled = {
 const empty = {
 	cursor: "pointer",
 	appearance: "tint3",
-	interactive: true,
+	interactive: "true",
 	hoverElevation: 1
 };
 

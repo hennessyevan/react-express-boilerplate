@@ -25,17 +25,18 @@ export class History extends Component {
 		}
 	}
 
-	openDialog = (name, dialogDescription, time) => {
+	openDialog = (name, dialogDescription, time, petName) => {
 		this.setState({
 			dialogIsOpen: true,
-			dialogTitle: `${name} fed ${this.props.petName} ${moment(time).from(moment())}`,
+			dialogTitle: `${name} fed ${petName} ${moment(time).from(moment())}`,
 			dialogDescription
 		});
 	};
 
 	render() {
 		const { history, dialogIsOpen, dialogTitle, dialogDescription } = this.state;
-		if (this.state.history.length) {
+
+		if (history.length) {
 			return (
 				<Fragment>
 					<HistoryContainer>
@@ -43,7 +44,7 @@ export class History extends Component {
 						<PoseGroup animateOnMount={true}>
 							{history.map((entry, i) => (
 								<HistoryCard
-									onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt)}
+									onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)}
 									cursor="pointer"
 									key={entry._id}
 									width={300}
@@ -56,7 +57,7 @@ export class History extends Component {
 									<Flex column justifyBetween full>
 										<FlexItem>
 											<Text>
-												{entry.user.firstName} fed {this.props.petName}
+												{entry.user.firstName} fed {entry.pet.name}
 											</Text>
 										</FlexItem>
 										<Flex justifyBetween>

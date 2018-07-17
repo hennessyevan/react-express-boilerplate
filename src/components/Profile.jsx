@@ -1,11 +1,12 @@
 import React, { Component, Fragment } from "react";
 import Flex, { FlexItem } from "styled-flex-component";
 import { Avatar, Popover, Button, Text } from "evergreen-ui";
-import { EditProfile } from "./";
+import { EditProfile, EditPet } from "./";
 
 export class Profile extends Component {
 	state = {
-		editProfile: false
+		editProfile: false,
+		editPet: false
 	};
 
 	toggleProfileEditor = () => {
@@ -14,30 +15,59 @@ export class Profile extends Component {
 		}));
 	};
 
+	togglePetEditor = () => {
+		this.setState(prevState => ({
+			editPet: !prevState.editPet
+		}));
+	};
+
 	render() {
-		const { gravatar, firstName, lastName, logout } = this.props;
-		const { editProfile } = this.state;
+		const { user, logout } = this.props;
+		const { editProfile, editPet } = this.state;
 		return (
 			<Fragment>
 				<Popover
 					statelessProps={{ paddingY: 10, paddingX: 15, width: 250 }}
 					position="BOTTOM_RIGHT"
-					content={<InnerMenu showProfileEditor={() => this.toggleProfileEditor()} logout={logout} firstName={firstName} lastName={lastName} />}>
+					content={
+						<InnerMenu
+							showProfileEditor={() => this.toggleProfileEditor()}
+							showPetEditor={() => this.togglePetEditor()}
+							logout={logout}
+							firstName={user.firstName}
+							lastName={user.lastName}
+						/>
+					}>
 					<Avatar
 						cursor="pointer"
 						size={40}
-						src={gravatar ? `https://secure.gravatar.com/avatar/${gravatar}?size=80` : ""}
-						name={`${firstName} ${lastName}`}>
+						src={user.gravatar ? `https://secure.gravatar.com/avatar/${user.gravatar}?size=80` : ""}
+						name={`${user.firstName} ${user.lastName}`}>
 						Avatar
 					</Avatar>
 				</Popover>
-				<EditProfile onCloseComplete={() => this.toggleProfileEditor()} isShown={editProfile} firstName={firstName} lastName={lastName} />
+				<EditProfile
+					onCloseComplete={() => this.toggleProfileEditor()}
+					refresh={this.props.refresh}
+					isShown={editProfile}
+					firstName={user.firstName}
+					lastName={user.lastName}
+					email={user.email}
+					logout={logout}
+				/>
+				<EditPet
+					onCloseComplete={() => this.togglePetEditor()}
+					refresh={this.props.refresh}
+					isShown={editPet}
+					name={user.pets && user.pets[0].name}
+					pet={user.pets[0]}
+				/>
 			</Fragment>
 		);
 	}
 }
 
-const InnerMenu = ({ logout, showProfileEditor, firstName, lastName }) => (
+const InnerMenu = ({ logout, showProfileEditor, showPetEditor, firstName, lastName }) => (
 	<Flex justifyAround column>
 		<AlignSelfRight>
 			<Text>{`${firstName} ${lastName}`}</Text>
@@ -45,8 +75,8 @@ const InnerMenu = ({ logout, showProfileEditor, firstName, lastName }) => (
 		<Button onClick={() => showProfileEditor()} height={36} appearance="ghostBlue">
 			Edit Profile
 		</Button>
-		<Button height={36} appearance="ghostBlue">
-			Add Pet
+		<Button onClick={() => showPetEditor()} height={36} appearance="ghostBlue">
+			Edit Pet
 		</Button>
 		<Button onClick={() => logout()} height={36} appearance="ghostBlue">
 			Sign Out

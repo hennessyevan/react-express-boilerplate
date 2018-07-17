@@ -1,5 +1,4 @@
 import React, { Fragment } from "react";
-import styled from "styled-components";
 import { Text } from "evergreen-ui";
 import moment from "moment";
 import { IoIosSunny, IoIosMoon } from "react-icons/lib/io";

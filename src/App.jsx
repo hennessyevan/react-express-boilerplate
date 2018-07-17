@@ -1,66 +1,96 @@
 import React, { Component } from "react";
 import styled from "styled-components";
+import Flex from "styled-flex-component";
 import { LoggedIn, LoggedOut } from "./components";
 import { Overlay, Text } from "evergreen-ui";
 import axios from "axios";
+import { getToken, removeToken } from "./tokenservice";
 
 class App extends Component {
 	state = {
-		petName: "",
-		loggedIn: localStorage.getItem("loggedin"),
-		isLoggingIn: false,
+		isLoggingIn: true,
 		isLoggingOut: false,
-		user: {
-			firstName: "Evan",
-			lastName: "Hennessy",
-			gravatar: "15c4638d71a3e5ee3f445a1fe98cffa5"
-		}
+		user: null
 	};
 
 	async componentDidMount() {
-		const pet = await axios.get("/pets/5b415dc0ece44d5eabd4eccc");
-		this.setState({
-			petName: pet.data.name
-		});
+		this.getCurrentUser();
 	}
 
-	login = async () => {
-		this.setState({ isLoggingIn: true });
-		setTimeout(() => {
-			localStorage.setItem("loggedin", true);
-			this.setState({ loggedIn: true, isLoggingIn: false });
-		}, 1000);
+	getCurrentUser = async () => {
+		const token = getToken();
+		if (token) {
+			try {
+				const res = await axios.get("/users/current", {
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				});
+				const user = res.data;
+				this.setUser({ user: user });
+			} catch (error) {
+				console.error(error);
+			}
+		} else {
+			this.setState({ isLoggingIn: false });
+		}
 	};
 
-	logout = async () => {
+	refresh = async () => {
+		await this.getCurrentUser();
+		this.forceUpdate();
+	};
+
+	setUser = user => {
+		this.setState({ user, isLoggingIn: false });
+	};
+
+	logout = () => {
 		this.setState({ isLoggingOut: true });
 		setTimeout(() => {
-			localStorage.removeItem("loggedin");
-			this.setState({ loggedIn: false, isLoggingOut: false });
+			removeToken();
+			this.setState({ isLoggingOut: false, user: null });
 		}, 1000);
 	};
 
 	render() {
-		const { petName, loggedIn, isLoggingOut, isLoggingIn, user } = this.state;
-		return (
-			<Container pose={loggedIn ? "visible" : "hidden"}>
-				{loggedIn ? (
-					<LoggedIn user={user} logout={() => this.logout()} petName={petName} />
-				) : (
-					<LoggedOut isLoggingIn={isLoggingIn} login={() => this.login()} />
-				)}
-				<Overlay isShown={isLoggingOut}>
-					<LoggingOutPane>
-						<Text>👋 Goodbye {user.firstName}</Text>
-					</LoggingOutPane>
-				</Overlay>
-			</Container>
-		);
+		const { isLoggingOut, isLoggingIn, user } = this.state;
+		if (!isLoggingIn) {
+			return (
+				<Container pose={user ? "visible" : "hidden"}>
+					{user ? (
+						<LoggedIn refresh={() => this.refresh()} user={user} logout={() => this.logout()} />
+					) : (
+						<LoggedOut refresh={() => this.refresh()} isLoggingIn={isLoggingIn} />
+					)}
+					<Overlay isShown={isLoggingOut}>
+						<LoggingOutPane>
+							<Flex full center>
+								<GoodbyeText color="white" size={900}>
+									<span aria-label="Hand Waving Emoji" role="img">
+										👋
+									</span>&nbsp;&nbsp;Goodbye
+								</GoodbyeText>
+							</Flex>
+						</LoggingOutPane>
+					</Overlay>
+				</Container>
+			);
+		} else {
+			return "";
+		}
 	}
 }
 
+const GoodbyeText = styled(Text)`
+	color: white;
+	z-index: 999;
+`;
+
 const LoggingOutPane = styled.div`
 	z-index: 999;
+	height: 100vh;
+	width: 100vw;
 `;
 
 const Container = styled.div`
