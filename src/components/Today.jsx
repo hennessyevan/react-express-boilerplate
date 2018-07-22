@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Card, Dialog, Heading, Text, toaster } from "evergreen-ui";
+import { Card, Dialog, Heading, Text, toaster, colors } from "evergreen-ui";
 import moment from "moment";
 import React, { Component, Fragment } from "react";
 import { IoIosCheckmark, IoIosClose, IoIosPlus } from "react-icons/lib/io";
@@ -7,7 +7,7 @@ import posed, { PoseGroup } from "react-pose";
 import { transform } from "popmotion";
 import styled from "styled-components";
 import Flex, { FlexItem } from "styled-flex-component";
-import { TimeOfDay } from "./TimeOfDay";
+import { TimeOfDay, Ellipsis } from "./";
 import { getToken } from "../tokenservice";
 
 export class Today extends Component {
@@ -35,8 +35,9 @@ export class Today extends Component {
 	getTodaysEntries = async () => {
 		// get pet entries for today
 		try {
+			console.log(this.props.pet);
 			const token = getToken();
-			const entries = await axios.get("/entries/today", {
+			const entries = await axios.get(`/entries?time=today&pet=${this.props.pet}`, {
 				headers: {
 					Authorization: `Bearer ${token}`
 				}
@@ -58,15 +59,14 @@ export class Today extends Component {
 	};
 
 	addEntry = async (petID, userID, scheduledTime) => {
-		console.log({ petID, userID });
-		const time = moment();
+		const time = new Date();
 		if (!moment(time).isBetween(moment(scheduledTime.startTime, "HHmm"), moment(scheduledTime.endTime, "HHmm"))) {
 			toaster.warning(`Too Early`, { description: `Please wait until ${moment(scheduledTime.startTime, "HHmm").format("ha")}` });
 		} else {
 			try {
-				const token = getToken();
+				const token = await getToken();
 				await axios.post(
-					"/entries/add",
+					"/entries",
 					{ user: userID, pet: petID },
 					{
 						headers: {
@@ -108,7 +108,6 @@ export class Today extends Component {
 
 	render() {
 		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName } = this.state;
-		// onClick={entry.description && (() => this.openDialog(entry.user.firstName, entry.description, entry.time))}
 		return (
 			<Fragment>
 				<TodayContainer wrap>
@@ -125,6 +124,7 @@ export class Today extends Component {
 								marginBottom={15}
 								paddingX={17}
 								paddingY={15}
+								position="relative"
 								index={i}
 								onDragEnd={() => {
 									this.deleteEntry(this.x, entry);
@@ -132,9 +132,12 @@ export class Today extends Component {
 								onValueChange={{ x: x => (this.x = x) }}
 								{...full}>
 								<Flex justifyBetween column full>
+									{entry.description && (
+										<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
+									)}
 									<FlexItem>
 										<Flex alignCenter>
-											<IoIosCheckmark size={18} color="#47b881" />
+											<IoIosCheckmark size={18} color={colors.green[500]} />
 											<Text marginLeft={5}>
 												{entry.user.firstName} fed {petName}
 											</Text>
@@ -162,7 +165,7 @@ export class Today extends Component {
 												<EmptyCard key={scheduledTime._id} i={i} width={300} height={100} marginBottom={15} padding={15} paddingY={10} {...disabled}>
 													<Flex full center column style={{ position: "relative" }}>
 														<FlexItem>
-															<IoIosClose size={28} color="#f36331" />
+															<IoIosClose size={28} color={colors.red[500]} />
 														</FlexItem>
 														<FlexItem style={{ position: "absolute", bottom: 0, left: 0 }}>
 															<TimeOfDay time={scheduledTime.startTime} format="HHmm" />
@@ -183,7 +186,7 @@ export class Today extends Component {
 													<Flex full center column style={{ position: "relative" }}>
 														<FlexItem>
 															<Flex alignCenter>
-																<IoIosPlus size={28} color="#707070" />
+																<IoIosPlus size={28} color={colors.neutral[300]} />
 															</Flex>
 														</FlexItem>
 														<FlexItem style={{ position: "absolute", bottom: 0, left: 0 }}>

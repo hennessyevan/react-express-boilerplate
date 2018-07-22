@@ -95,7 +95,13 @@ export class EditProfile extends Component {
 						/>
 					</FlexItem>
 					<FlexItem basis="47.5%">
-						<TextInputField label="Profile Photo" name="profile_photo" description="This field is controlled by your gravatar" disabled />
+						<TextInputField
+							label="Profile Photo"
+							name="profile_photo"
+							value={this.props.gravatar}
+							description="This field is controlled by your gravatar"
+							disabled
+						/>
 					</FlexItem>
 				</Flex>
 			</Dialog>

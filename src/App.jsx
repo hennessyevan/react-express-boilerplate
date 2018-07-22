@@ -10,7 +10,8 @@ class App extends Component {
 	state = {
 		isLoggingIn: true,
 		isLoggingOut: false,
-		user: null
+		user: null,
+		pet: null
 	};
 
 	async componentDidMount() {
@@ -27,7 +28,9 @@ class App extends Component {
 					}
 				});
 				const user = res.data;
-				this.setUser({ user: user });
+				const pet = user.pets[0]._id;
+				this.setPet(pet);
+				this.setUser({ user });
 			} catch (error) {
 				console.error(error);
 			}
@@ -39,6 +42,10 @@ class App extends Component {
 	refresh = async () => {
 		await this.getCurrentUser();
 		this.forceUpdate();
+	};
+
+	setPet = pet => {
+		this.setState({ pet });
 	};
 
 	setUser = user => {
@@ -54,12 +61,12 @@ class App extends Component {
 	};
 
 	render() {
-		const { isLoggingOut, isLoggingIn, user } = this.state;
+		const { isLoggingOut, isLoggingIn, user, pet } = this.state;
 		if (!isLoggingIn) {
 			return (
 				<Container pose={user ? "visible" : "hidden"}>
 					{user ? (
-						<LoggedIn refresh={() => this.refresh()} user={user} logout={() => this.logout()} />
+						<LoggedIn refresh={() => this.refresh()} user={user} pet={pet} logout={() => this.logout()} />
 					) : (
 						<LoggedOut refresh={() => this.refresh()} isLoggingIn={isLoggingIn} />
 					)}

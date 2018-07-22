@@ -3,11 +3,21 @@ import Flex, { FlexItem } from "styled-flex-component";
 import { Dialog, TextInputField, toaster } from "evergreen-ui";
 import axios from "axios";
 import { getToken } from "../tokenservice";
+import { TimeOfDay } from "./";
+import TimeRange from "react-time-range";
+import moment from "moment";
+import _ from "lodash";
 
 export class EditPet extends Component {
 	state = {
 		saving: false,
-		name: this.props.name
+		name: this.props.name,
+		schedule: this.props.pet.schedule.map((schedule, i) => ({
+			_id: schedule._id,
+			startTime: schedule.startTime,
+			endTime: schedule.endTime,
+			index: i
+		}))
 	};
 
 	handleChange = e => {
@@ -46,8 +56,21 @@ export class EditPet extends Component {
 		}
 	};
 
+	modifySchedule = async (time, id, index) => {
+		let newSchedule = this.state.schedule.filter(schedule => schedule._id !== id);
+		newSchedule = [
+			...newSchedule,
+			{ _id: id, startTime: moment(time.startTime).format("HHmm"), endTime: moment(time.endTime).format("HHmm"), index: index }
+		];
+		newSchedule = await _.sortBy(newSchedule, ["index"]);
+		this.setState({
+			schedule: newSchedule
+		});
+		console.log({ time, id });
+	};
+
 	render() {
-		const { saving } = this.state;
+		const { saving, schedule } = this.state;
 		const { isShown, onCloseComplete } = this.props;
 		return (
 			<Dialog
@@ -68,6 +91,20 @@ export class EditPet extends Component {
 							spellCheck={false}
 							placeholder="Pet's Name"
 						/>
+						<pre>{JSON.stringify(schedule, null, 3)}</pre>
+						{schedule.map(schedule => (
+							<Flex alignCenter>
+								<TimeOfDay time={moment(schedule.startTime, "HHmm")} />
+								<TimeRange
+									startLabel={false}
+									endLabel="-"
+									sameIsValid={false}
+									startMoment={moment(schedule.startTime, "HHmm")}
+									endMoment={moment(schedule.endTime, "HHmm")}
+									onChange={time => this.modifySchedule(time, schedule._id, schedule.index)}
+								/>
+							</Flex>
+						))}
 					</FlexItem>
 				</Flex>
 			</Dialog>

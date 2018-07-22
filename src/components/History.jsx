@@ -2,9 +2,12 @@ import React, { Fragment, Component } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import posed, { PoseGroup } from "react-pose";
-import { Card, Heading, Text, Dialog } from "evergreen-ui";
+import { IoIosMore } from "react-icons/lib/io";
+import { Card, Heading, Text, Dialog, colors } from "evergreen-ui";
 import Flex, { FlexItem } from "styled-flex-component";
 import moment from "moment";
+import { getToken } from "../tokenservice";
+import { Ellipsis } from "./";
 
 export class History extends Component {
 	state = {
@@ -16,9 +19,14 @@ export class History extends Component {
 
 	async componentDidMount() {
 		try {
-			const entries = await axios.get("/entries/history");
+			const token = getToken();
+			const entries = await axios.get(`/entries?time=history&pet=${this.props.pet}`, {
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
 			this.setState({
-				history: [...entries.data]
+				history: entries.data
 			});
 		} catch (error) {
 			console.log(error);
@@ -44,17 +52,18 @@ export class History extends Component {
 						<PoseGroup animateOnMount={true}>
 							{history.map((entry, i) => (
 								<HistoryCard
-									onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)}
 									cursor="pointer"
 									key={entry._id}
 									width={300}
 									height={100}
 									elevation={0}
+									position="relative"
 									padding={17}
 									paddingY={15}
 									i={i}
 									hoverElevation={2}>
 									<Flex column justifyBetween full>
+										<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
 										<FlexItem>
 											<Text>
 												{entry.user.firstName} fed {entry.pet.name}

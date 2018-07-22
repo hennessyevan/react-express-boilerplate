@@ -19,7 +19,7 @@ export class Login extends Component {
 		e.preventDefault();
 		const { email, password } = this.state;
 		if (!email || !password) {
-			toaster.warning("Invalid Username or Password");
+			toaster.warning("Please fill out both fields");
 			return false;
 		}
 
@@ -28,14 +28,14 @@ export class Login extends Component {
 			await setToken(res.data.token);
 			this.props.refresh();
 		} catch (error) {
-			toaster.danger(`Unable to Login`);
+			toaster.danger("Invalid Username or Password");
 		}
 	};
 	render() {
 		const { isLoggingIn } = this.props;
 		return (
 			<Flex full center>
-				<Card elevation={1} padding={40}>
+				<Card maxWidth="calc(100vw - 25px)" elevation={1} padding={40}>
 					<Heading size={800}>Welcome Back.</Heading>
 					<Text>Sign in to continue</Text>
 

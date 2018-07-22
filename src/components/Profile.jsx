@@ -52,6 +52,7 @@ export class Profile extends Component {
 					isShown={editProfile}
 					firstName={user.firstName}
 					lastName={user.lastName}
+					gravatar={user.gravatar}
 					email={user.email}
 					logout={logout}
 				/>

@@ -8,3 +8,4 @@ export * from "./SignUp";
 export * from "./Profile";
 export * from "./EditProfile";
 export * from "./EditPet";
+export * from "./Ellipsis";
