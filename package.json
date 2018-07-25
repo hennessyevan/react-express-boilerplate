@@ -1,40 +1,27 @@
 {
-	"name": "the-dog-feed",
+	"name": "react-express-boilerplate",
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
 		"axios": "^0.18.0",
-		"bcrypt": "^3.0.0",
-		"body-parser": "^1.18.3",
-		"config": "^1.31.0",
-		"evergreen-ui": "^3.2.3",
 		"express": "^4.16.3",
-		"js-md5": "^0.7.3",
-		"jsonwebtoken": "^8.3.0",
-		"lodash": "^4.17.10",
-		"moment": "^2.22.2",
-		"mongoose": "^5.2.1",
 		"npm": "^6.1.0",
-		"popmotion": "^8.3.3",
 		"react": "^16.4.0",
 		"react-dom": "^16.4.0",
-		"react-icons": "^2.2.7",
-		"react-pose": "^2.1.2",
-		"react-scripts": "1.1.4",
-		"react-time-range": "^1.0.2",
-		"styled-components": "^3.3.3",
-		"styled-flex-component": "^2.2.2"
+		"react-scripts": "1.1.4"
+	},
+	"engines": {
+		"node": "10.0.0"
 	},
 	"proxy": "http://localhost:8080",
 	"scripts": {
-		"start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
+		"start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
 		"client": "react-scripts start",
 		"build": "react-scripts build",
 		"test": "react-scripts test --env=jsdom",
 		"eject": "react-scripts eject",
 		"server": "nodemon lib/server.js --ignore src/",
-		"seeds": "node lib/seeds/index.js",
-		"heroku-postbuild": "cd src && yarn --only=dev && yarn && yarn build"
+		"heroku-postbuild": "cd src && npm install --only=dev && npm install && npm run build"
 	},
 	"devDependencies": {
 		"concurrently": "^3.5.1",
