@@ -27,14 +27,14 @@
 	},
 	"proxy": "http://localhost:8080",
 	"scripts": {
-		"start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
+		"start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
 		"client": "react-scripts start",
 		"build": "react-scripts build",
 		"test": "react-scripts test --env=jsdom",
 		"eject": "react-scripts eject",
 		"server": "nodemon lib/server.js --ignore src/",
 		"seeds": "node lib/seeds/index.js",
-		"heroku-postbuild": "cd src && npm install --only=dev && npm install && npm run build"
+		"heroku-postbuild": "cd src && yarn --only=dev && yarn && yarn build"
 	},
 	"devDependencies": {
 		"concurrently": "^3.5.1",
