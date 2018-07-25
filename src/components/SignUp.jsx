@@ -29,7 +29,7 @@ export class SignUp extends Component {
 			this.setState({ isLoading: true });
 			await axios.post("/auth/signup", { email, password, firstName, lastName });
 			this.setState({ isLoading: false });
-			this.props.refresh();
+			toaster.success("Account Created!");
 			this.props.switchPane();
 		} catch (error) {
 			this.setState({ isLoading: false });
@@ -96,7 +96,7 @@ export class SignUp extends Component {
 					</Flex>
 					<Flex style={{ marginTop: 15 }} justifyEnd>
 						<Small>
-							Already have an account?<SwitchButton onClick={this.props.switchPane()}> Login</SwitchButton>
+							Already have an account?<SwitchButton onClick={() => this.props.switchPane()}> Login</SwitchButton>
 						</Small>
 					</Flex>
 				</Card>

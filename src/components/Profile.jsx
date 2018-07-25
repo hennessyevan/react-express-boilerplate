@@ -2,12 +2,24 @@ import React, { Component, Fragment } from "react";
 import Flex, { FlexItem } from "styled-flex-component";
 import { Avatar, Popover, Button, Text } from "evergreen-ui";
 import { EditProfile, EditPet } from "./";
+import axios from "axios";
 
 export class Profile extends Component {
 	state = {
-		editProfile: true,
-		editPet: false
+		editProfile: false,
+		editPet: false,
+		gravatar: ""
 	};
+
+	async componentDidMount() {
+		const gravatarHash = this.props.user.gravatar;
+		if (gravatarHash && !this.state.gravatar) {
+			const res = await axios.get(`https://secure.gravatar.com/avatar/${gravatarHash}?d=404`);
+			this.setState({ gravatar: res ? `https://secure.gravatar.com/avatar/${gravatarHash}?d=404` : "" });
+		} else {
+			this.setState({ gravatar: "" });
+		}
+	}
 
 	toggleProfileEditor = () => {
 		this.setState(prevState => ({
@@ -40,11 +52,7 @@ export class Profile extends Component {
 								lastName={user.lastName}
 							/>
 						}>
-						<Avatar
-							cursor="pointer"
-							size={40}
-							src={user.gravatar ? `https://secure.gravatar.com/avatar/${user.gravatar}?size=80` : ""}
-							name={`${user.firstName} ${user.lastName}`}>
+						<Avatar cursor="pointer" size={40} src={this.state.gravatar} name={`${user.firstName} ${user.lastName}`}>
 							Avatar
 						</Avatar>
 					</Popover>

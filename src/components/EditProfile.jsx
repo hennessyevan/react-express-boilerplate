@@ -23,25 +23,26 @@ export class EditProfile extends Component {
 		const { firstName, lastName, email, newPassword, confirmPassword } = this.state;
 		const token = getToken();
 
-		const password = newPassword === confirmPassword ? newPassword : "";
-		if (!password) {
+		const passwordMatch = newPassword === confirmPassword;
+		const password = passwordMatch && newPassword !== "" ? newPassword : null;
+		if (!passwordMatch) {
 			toaster.danger(`Passwords don't match ${newPassword}`);
 			return false;
 		}
+
+		const newProfile = !password ? { firstName, lastName, email } : { firstName, lastName, email, password };
+
+		console.log(password);
 
 		this.setState({
 			saving: true
 		});
 		try {
-			await axios.put(
-				"/users/current",
-				{ firstName, lastName, email, password },
-				{
-					headers: {
-						Authorization: `Bearer ${token}`
-					}
+			await axios.put("/users/current", newProfile, {
+				headers: {
+					Authorization: `Bearer ${token}`
 				}
-			);
+			});
 			toaster.success("Profile Saved.");
 			this.setState({
 				saving: false

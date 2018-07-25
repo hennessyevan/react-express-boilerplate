@@ -70,7 +70,7 @@ export class Login extends Component {
 					</Flex>
 					<Flex style={{ marginTop: 15 }} justifyEnd>
 						<Small>
-							Don't have an account?<SwitchButton onClick={this.props.switchPane()}> Sign Up</SwitchButton>
+							Don't have an account?<SwitchButton onClick={() => this.props.switchPane()}> Sign Up</SwitchButton>
 						</Small>
 					</Flex>
 				</Card>

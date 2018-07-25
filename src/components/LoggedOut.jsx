@@ -6,10 +6,10 @@ export class LoggedOut extends Component {
 		signUpFlow: false
 	};
 
-	switchPane = () => {
-		this.setState(prevState => ({
-			signUpFlow: !prevState.signUpFlow
-		}));
+	switchPane = signUp => {
+		this.setState({
+			signUpFlow: signUp
+		});
 	};
 
 	render() {
@@ -17,9 +17,9 @@ export class LoggedOut extends Component {
 		return (
 			<Fragment>
 				{signUpFlow ? (
-					<SignUp refresh={this.props.refresh} switchPane={() => this.switchPane} />
+					<SignUp refresh={this.props.refresh} switchPane={() => this.switchPane(false)} />
 				) : (
-					<Login refresh={this.props.refresh} isLoggingIn={this.props.isLoggingIn} switchPane={() => this.switchPane} />
+					<Login refresh={this.props.refresh} isLoggingIn={this.props.isLoggingIn} switchPane={() => this.switchPane(true)} />
 				)}
 			</Fragment>
 		);
