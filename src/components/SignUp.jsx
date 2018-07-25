@@ -3,7 +3,6 @@ import styled from "styled-components";
 import Flex, { FlexItem } from "styled-flex-component";
 import { TextInputField, Card, Heading, Text, Button, Small, toaster } from "evergreen-ui";
 import axios from "axios";
-import { setToken } from "../tokenservice";
 
 export class SignUp extends Component {
 	state = {
@@ -27,10 +26,14 @@ export class SignUp extends Component {
 		}
 
 		try {
-			const res = await axios.post("/auth/signup", { email, password, firstName, lastName });
+			this.setState({ isLoading: true });
+			await axios.post("/auth/signup", { email, password, firstName, lastName });
+			this.setState({ isLoading: false });
 			this.props.refresh();
+			this.props.switchPane();
 		} catch (error) {
-			toaster.danger(`Unable to Sign Up`);
+			this.setState({ isLoading: false });
+			toaster.danger(`Unable to Sign Up ${error}`);
 		}
 	};
 

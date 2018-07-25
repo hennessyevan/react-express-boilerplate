@@ -12,12 +12,14 @@ export class EditPet extends Component {
 	state = {
 		saving: false,
 		name: this.props.name,
-		schedule: this.props.pet.schedule.map((schedule, i) => ({
-			_id: schedule._id,
-			startTime: schedule.startTime,
-			endTime: schedule.endTime,
-			index: i
-		}))
+		schedule:
+			this.props.pet &&
+			this.props.pet.schedule.map((schedule, i) => ({
+				_id: schedule._id,
+				startTime: schedule.startTime,
+				endTime: schedule.endTime,
+				index: i
+			}))
 	};
 
 	handleChange = e => {
@@ -33,7 +35,7 @@ export class EditPet extends Component {
 		const token = getToken();
 
 		try {
-			const res = await axios.put(
+			await axios.put(
 				`/pets/${this.props.pet._id}`,
 				{ name },
 				{
@@ -60,7 +62,12 @@ export class EditPet extends Component {
 		let newSchedule = this.state.schedule.filter(schedule => schedule._id !== id);
 		newSchedule = [
 			...newSchedule,
-			{ _id: id, startTime: moment(time.startTime).format("HHmm"), endTime: moment(time.endTime).format("HHmm"), index: index }
+			{
+				_id: id,
+				startTime: moment(time.startTime).format("HHmm"),
+				endTime: moment(time.endTime).format("HHmm"),
+				index: index
+			}
 		];
 		newSchedule = await _.sortBy(newSchedule, ["index"]);
 		this.setState({

@@ -17,7 +17,7 @@ export class LoggedOut extends Component {
 		return (
 			<Fragment>
 				{signUpFlow ? (
-					<SignUp switchPane={() => this.switchPane} />
+					<SignUp refresh={this.props.refresh} switchPane={() => this.switchPane} />
 				) : (
 					<Login refresh={this.props.refresh} isLoggingIn={this.props.isLoggingIn} switchPane={() => this.switchPane} />
 				)}

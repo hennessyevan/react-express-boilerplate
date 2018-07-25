@@ -15,8 +15,8 @@ export class Today extends Component {
 		super(props);
 		this.state = {
 			today: [],
-			schedule: props.user.pets && props.user.pets[0].schedule,
-			petName: props.user.pets && props.user.pets[0].name,
+			schedule: props.user.pet && props.user.pet.schedule,
+			petName: props.user.pet && props.user.pet.name,
 			dialogIsOpen: false,
 			dialogContents: "",
 			startCardDeletion: false
@@ -92,7 +92,12 @@ export class Today extends Component {
 	deleteEntry = async (x, entry) => {
 		if (x <= -80) {
 			try {
-				await axios.delete(`/entries/${entry._id}`);
+				const token = getToken();
+				await axios.delete(`/entries/${entry._id}`, {
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				});
 				console.log(`removed ${entry._id}`);
 				const newState = await this.state.today.filter(item => item._id !== entry._id);
 				await this.setState({ today: newState });
@@ -175,7 +180,7 @@ export class Today extends Component {
 											) : (
 												<EmptyCard
 													key={scheduledTime._id}
-													onClick={() => this.addEntry(this.props.user.pets[0]._id, this.props.user._id, scheduledTime)}
+													onClick={() => this.addEntry(this.props.user.pet._id, this.props.user._id, scheduledTime)}
 													width={300}
 													height={100}
 													marginBottom={15}

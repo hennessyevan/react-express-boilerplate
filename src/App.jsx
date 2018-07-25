@@ -28,8 +28,10 @@ class App extends Component {
 					}
 				});
 				const user = res.data;
-				const pet = user.pets[0]._id;
-				this.setPet(pet);
+				if (user.pet) {
+					const pet = user.pet._id || "";
+					this.setPet(pet);
+				}
 				this.setUser({ user });
 			} catch (error) {
 				console.error(error);
@@ -49,7 +51,7 @@ class App extends Component {
 	};
 
 	setUser = user => {
-		this.setState({ user, isLoggingIn: false });
+		this.setState({ user: user.user, isLoggingIn: false });
 	};
 
 	logout = () => {

@@ -2,8 +2,7 @@ import React, { Fragment, Component } from "react";
 import styled from "styled-components";
 import axios from "axios";
 import posed, { PoseGroup } from "react-pose";
-import { IoIosMore } from "react-icons/lib/io";
-import { Card, Heading, Text, Dialog, colors } from "evergreen-ui";
+import { Card, Heading, Text, Dialog } from "evergreen-ui";
 import Flex, { FlexItem } from "styled-flex-component";
 import moment from "moment";
 import { getToken } from "../tokenservice";
@@ -105,7 +104,7 @@ const HistoryCard = posed(Card)({
 	enter: {
 		opacity: 1,
 		y: 0,
-		delay: ({ i }) => i * 175 + 600,
+		delay: ({ i }) => i * 175 + 300,
 		transition: {
 			type: "spring",
 			stiffness: 300,
