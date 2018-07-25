@@ -1,6 +1,6 @@
 {
-	"name": "The Dog Feed",
-	"short_name": "Dog Feed",
+	"name": "The Pet Feed",
+	"short_name": "Pet Feed",
 	"lang": "en-US",
 	"start_url": "/",
 	"display": "standalone",
