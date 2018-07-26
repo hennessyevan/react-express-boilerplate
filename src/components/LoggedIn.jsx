@@ -7,10 +7,7 @@ import axios from "axios";
 import { getToken } from "../tokenservice";
 
 export const LoggedIn = ({ logout, user, refresh, pet }) => (
-	<LoggedInContainer>
-		{console.log(user)}
-		{user.pet ? <Main logout={logout} user={user} refresh={refresh} pet={pet} /> : <PickAPet user={user} />}
-	</LoggedInContainer>
+	<LoggedInContainer>{user.pet ? <Main logout={logout} user={user} refresh={refresh} pet={pet} /> : <PickAPet user={user} />}</LoggedInContainer>
 );
 
 const Main = ({ logout, user, refresh, pet }) => (
@@ -41,7 +38,6 @@ class PickAPet extends Component {
 					}
 			  })
 			: {};
-		console.log(availablePets);
 	}
 
 	render() {

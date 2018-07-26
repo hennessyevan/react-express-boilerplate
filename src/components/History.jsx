@@ -62,7 +62,9 @@ export class History extends Component {
 									i={i}
 									hoverElevation={2}>
 									<Flex column justifyBetween full>
-										<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
+										{entry.description && (
+											<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
+										)}
 										<FlexItem>
 											<Text>
 												{entry.user.firstName} fed {entry.pet.name}

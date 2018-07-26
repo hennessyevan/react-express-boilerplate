@@ -73,7 +73,6 @@ export class EditPet extends Component {
 		this.setState({
 			schedule: newSchedule
 		});
-		console.log({ time, id });
 	};
 
 	render() {

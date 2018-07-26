@@ -35,7 +35,6 @@ export class Today extends Component {
 	getTodaysEntries = async () => {
 		// get pet entries for today
 		try {
-			console.log(this.props.pet);
 			const token = getToken();
 			const entries = await axios.get(`/entries?time=today&pet=${this.props.pet}`, {
 				headers: {
@@ -98,7 +97,6 @@ export class Today extends Component {
 						Authorization: `Bearer ${token}`
 					}
 				});
-				console.log(`removed ${entry._id}`);
 				const newState = await this.state.today.filter(item => item._id !== entry._id);
 				await this.setState({ today: newState });
 			} catch (error) {
@@ -131,6 +129,7 @@ export class Today extends Component {
 								paddingY={15}
 								position="relative"
 								index={i}
+								canBeDeleted={moment(entry.updatedAt).diff(moment(), "minutes", true) >= -5}
 								onDragEnd={() => {
 									this.deleteEntry(this.x, entry);
 								}}
@@ -277,7 +276,7 @@ const EmptyCard = styled(
 
 const TodayCard = styled(
 	posed(Card)({
-		draggable: "x",
+		draggable: ({ canBeDeleted }) => (canBeDeleted ? "x" : ""),
 		dragBounds: { left: -100, right: 0 },
 		onDragEnd: { display: "none" },
 		passive: {

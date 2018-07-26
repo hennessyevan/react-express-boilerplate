@@ -32,8 +32,6 @@ export class EditProfile extends Component {
 
 		const newProfile = !password ? { firstName, lastName, email } : { firstName, lastName, email, password };
 
-		console.log(password);
-
 		this.setState({
 			saving: true
 		});
