@@ -4,7 +4,7 @@ import moment from "moment";
 import React, { Component, Fragment } from "react";
 import { IoIosCheckmark, IoIosClose, IoIosPlus } from "react-icons/lib/io";
 import posed, { PoseGroup } from "react-pose";
-import { transform } from "popmotion";
+import { transform, spring, value } from "popmotion";
 import styled from "styled-components";
 import Flex, { FlexItem } from "styled-flex-component";
 import { TimeOfDay, Ellipsis } from "./";
@@ -89,7 +89,7 @@ export class Today extends Component {
 	};
 
 	deleteEntry = async (x, entry) => {
-		if (x <= -80) {
+		if (x <= -100) {
 			try {
 				const token = getToken();
 				await axios.delete(`/entries/${entry._id}`, {
@@ -119,44 +119,53 @@ export class Today extends Component {
 					</Heading>
 					{today.map((entry, i) => (
 						<FlexItem key={entry._id} order={moment(entry.updatedAt).format("H")}>
-							<TodayCard
-								key={entry._id}
-								ref={entry._id}
-								width={300}
-								height={100}
-								marginBottom={15}
-								paddingX={17}
-								paddingY={15}
-								position="relative"
-								index={i}
-								canBeDeleted={moment(entry.updatedAt).diff(moment(), "minutes", true) >= -5}
-								onDragEnd={() => {
-									this.deleteEntry(this.x, entry);
-								}}
-								onValueChange={{ x: x => (this.x = x) }}
-								{...full}>
-								<Flex justifyBetween column full>
-									{entry.description && (
-										<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
-									)}
-									<FlexItem>
-										<Flex alignCenter>
-											<IoIosCheckmark size={18} color={colors.green[500]} />
-											<Text marginLeft={5}>
-												{entry.user.firstName} fed {petName}
-											</Text>
+							<CardContainer>
+								<DeleteIndicator full alignCenter justifyEnd>
+									<DeleteIcon column center>
+										<IoIosClose size={32} color="white" />
+										<Text size={200} color="white">
+											Delete
+										</Text>
+									</DeleteIcon>
+								</DeleteIndicator>
+								<TodayCard
+									key={entry._id}
+									ref={entry._id}
+									width={300}
+									height={100}
+									paddingX={17}
+									paddingY={15}
+									position="relative"
+									index={i}
+									pose={moment(entry.updatedAt).diff(moment(), "minutes", true) >= -5 ? "expired" : "default"}
+									onDragEnd={() => {
+										this.deleteEntry(this.x, entry);
+									}}
+									onValueChange={{ x: x => (this.x = x) }}
+									{...full}>
+									<Flex justifyBetween column full>
+										{entry.description && (
+											<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
+										)}
+										<FlexItem>
+											<Flex alignCenter>
+												<IoIosCheckmark size={18} color={colors.green[500]} />
+												<Text marginLeft={5}>
+													{entry.user.firstName} fed {petName}
+												</Text>
+											</Flex>
+										</FlexItem>
+										<Flex justifyBetween>
+											<FlexItem>
+												<TimeOfDay time={entry.updatedAt} format="" />
+											</FlexItem>
+											<FlexItem>
+												<Text>{moment(entry.updatedAt).format("h:mma")}</Text>
+											</FlexItem>
 										</Flex>
-									</FlexItem>
-									<Flex justifyBetween>
-										<FlexItem>
-											<TimeOfDay time={entry.updatedAt} format="" />
-										</FlexItem>
-										<FlexItem>
-											<Text>{moment(entry.updatedAt).format("h:mma")}</Text>
-										</FlexItem>
 									</Flex>
-								</Flex>
-							</TodayCard>
+								</TodayCard>
+							</CardContainer>
 						</FlexItem>
 					))}
 					{schedule &&
@@ -276,15 +285,16 @@ const EmptyCard = styled(
 
 const TodayCard = styled(
 	posed(Card)({
-		draggable: ({ canBeDeleted }) => (canBeDeleted ? "x" : ""),
-		dragBounds: { left: -100, right: 0 },
+		draggable: "x",
+		dragBounds: { left: -125, right: 0 },
 		onDragEnd: { display: "none" },
-		passive: {
-			opacity: ["x", transform.interpolate([-100, -35, 0, 0], [0, 1, 1, 1])]
+		dragEnd: {
+			transition: ({ from, to, velocity }) => spring({ from, to, velocity, stiffness: 750, damping: 50 })
 		},
 		enter: {
 			opacity: 1,
 			scale: 1,
+			zIndex: 999,
 			delay: ({ i }) => i * 150,
 			transition: {
 				opacity: {
@@ -296,33 +306,45 @@ const TodayCard = styled(
 					stiffness: 200,
 					damping: 10
 				}
-			}
-		},
-		exit: {
-			opacity: 0,
-			scale: 0.9,
-			delay: ({ i }) => i * 150 + 150,
-			transition: {
-				opacity: {
-					ease: "easeInOut",
-					duration: 100
-				},
-				default: {
-					type: "spring",
-					stiffness: 200,
-					damping: 10
+			},
+			exit: {
+				opacity: 0,
+				scale: 0.9,
+				delay: ({ i }) => i * 150 + 150,
+				transition: {
+					opacity: {
+						ease: "easeInOut",
+						duration: 100
+					},
+					default: {
+						type: "spring",
+						stiffness: 200,
+						damping: 10
+					}
 				}
 			}
 		}
 	})
 )`
 	background-color: white;
-	margin-right: 15px;
-	transition: opacity 300ms;
 
 	@media screen and (max-width: 767px) {
 		margin-right: 0;
 	}
+`;
+
+const CardContainer = styled.div`
+	background-color: ${colors.red[400]};
+	border-radius: 5px;
+	position: absolute;
+`;
+
+const DeleteIndicator = Flex.extend`
+	position: absolute;
+`;
+
+const DeleteIcon = Flex.extend`
+	margin-right: 25px;
 `;
 
 const disabled = {

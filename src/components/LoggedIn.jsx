@@ -16,7 +16,6 @@ const Main = ({ logout, user, refresh, pet }) => (
 			<Profile refresh={refresh} logout={logout} user={user} />
 		</ProfileContainer>
 		<Heading marginBottom={25} size={900}>
-			{console.log(user)}
 			{user.pet && `${user.pet.name}'s `}Dog Feed
 		</Heading>
 		<Today pet={pet} user={user} />
