@@ -60,7 +60,9 @@ export class Today extends Component {
 	addEntry = async (petID, userID, scheduledTime) => {
 		const time = new Date();
 		if (!moment(time).isBetween(moment(scheduledTime.startTime, "HHmm"), moment(scheduledTime.endTime, "HHmm"))) {
-			toaster.warning(`Too Early`, { description: `Please wait until ${moment(scheduledTime.startTime, "HHmm").format("ha")}` });
+			toaster.warning(`Too Early`, {
+				description: `Please wait until ${moment(scheduledTime.startTime, "HHmm").format("ha")}`
+			});
 		} else {
 			try {
 				const token = await getToken();
@@ -145,7 +147,12 @@ export class Today extends Component {
 									{...full}>
 									<Flex justifyBetween column full>
 										{entry.description && (
-											<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
+											<Ellipsis
+												size={16}
+												onClick={() =>
+													this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)
+												}
+											/>
 										)}
 										<FlexItem>
 											<Flex alignCenter>
@@ -175,7 +182,15 @@ export class Today extends Component {
 									<FlexItem key={scheduledTime._id} full order={moment(scheduledTime.startTime, "HHmm").format("H")}>
 										<PoseGroup animateOnMount={true}>
 											{this.opportunityPassed(scheduledTime) ? (
-												<EmptyCard key={scheduledTime._id} i={i} width={300} height={100} marginBottom={15} padding={15} paddingY={10} {...disabled}>
+												<EmptyCard
+													key={scheduledTime._id}
+													i={i}
+													width={300}
+													height={100}
+													marginBottom={15}
+													padding={15}
+													paddingY={10}
+													{...disabled}>
 													<Flex full center column style={{ position: "relative" }}>
 														<FlexItem>
 															<IoIosClose size={28} color={colors.red[500]} />
@@ -327,6 +342,7 @@ const TodayCard = styled(
 	})
 )`
 	background-color: white;
+	z-index: 3;
 
 	@media screen and (max-width: 767px) {
 		margin-right: 0;
@@ -336,11 +352,13 @@ const TodayCard = styled(
 const CardContainer = styled.div`
 	background-color: ${colors.red[400]};
 	border-radius: 5px;
-	position: absolute;
+	position: relative;
+	z-index: 1;
 `;
 
 const DeleteIndicator = Flex.extend`
 	position: absolute;
+	z-index: 2;
 `;
 
 const DeleteIcon = Flex.extend`
