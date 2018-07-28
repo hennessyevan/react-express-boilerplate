@@ -18,6 +18,8 @@ export class Today extends Component {
 			schedule: props.user.pet && props.user.pet.schedule,
 			petName: props.user.pet && props.user.pet.name,
 			dialogIsOpen: false,
+			deleteDialog: false,
+			entryToBeDeleted: "",
 			dialogContents: "",
 			startCardDeletion: false
 		};
@@ -90,20 +92,25 @@ export class Today extends Component {
 		return !today.length ? false : match.length;
 	};
 
-	deleteEntry = async (x, entry) => {
-		if (x <= -100) {
-			try {
-				const token = getToken();
-				await axios.delete(`/entries/${entry._id}`, {
-					headers: {
-						Authorization: `Bearer ${token}`
-					}
-				});
-				const newState = await this.state.today.filter(item => item._id !== entry._id);
-				await this.setState({ today: newState });
-			} catch (error) {
-				toaster.danger(`Unable to delete entry`);
-			}
+	confirmDelete = (x, entry) => {
+		if (x <= -200) {
+			this.setState({ deleteDialog: true, entryToBeDeleted: entry._id });
+		}
+	};
+
+	deleteEntry = async () => {
+		const { entryToBeDeleted } = this.state;
+		try {
+			const token = getToken();
+			await axios.delete(`/entries/${entryToBeDeleted}`, {
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
+			const newState = await this.state.today.filter(item => item._id !== entryToBeDeleted);
+			await this.setState({ today: newState });
+		} catch (error) {
+			toaster.danger(`Unable to delete entry`);
 		}
 	};
 
@@ -112,7 +119,7 @@ export class Today extends Component {
 	};
 
 	render() {
-		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName } = this.state;
+		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName, deleteDialog } = this.state;
 		return (
 			<Fragment>
 				<TodayContainer wrap>
@@ -141,7 +148,7 @@ export class Today extends Component {
 									index={i}
 									pose={moment(entry.updatedAt).diff(moment(), "minutes", true) >= -5 ? "expired" : "default"}
 									onDragEnd={() => {
-										this.deleteEntry(this.x, entry);
+										this.confirmDelete(this.x, entry);
 									}}
 									onValueChange={{ x: x => (this.x = x) }}
 									{...full}>
@@ -229,6 +236,22 @@ export class Today extends Component {
 						)}
 				</TodayContainer>
 				<Dialog
+					isShown={deleteDialog}
+					type="danger"
+					hasHeader={false}
+					confirmLabel="Delete"
+					onCloseComplete={() =>
+						this.setState({
+							deleteDialog: false
+						})
+					}
+					onConfirm={close => {
+						this.deleteEntry();
+						close();
+					}}>
+					<Text>Are you sure you want to delete this entry?</Text>
+				</Dialog>
+				<Dialog
 					isShown={dialogIsOpen}
 					title={dialogTitle}
 					onCloseComplete={() =>
@@ -301,7 +324,7 @@ const EmptyCard = styled(
 const TodayCard = styled(
 	posed(Card)({
 		draggable: "x",
-		dragBounds: { left: -125, right: 0 },
+		dragBounds: { left: -275, right: 0 },
 		onDragEnd: { display: "none" },
 		dragEnd: {
 			transition: ({ from, to, velocity }) => spring({ from, to, velocity, stiffness: 750, damping: 50 })
