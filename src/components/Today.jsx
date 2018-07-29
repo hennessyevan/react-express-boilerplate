@@ -20,13 +20,11 @@ export class Today extends Component {
 			dialogIsOpen: false,
 			deleteDialog: false,
 			entryToBeDeleted: "",
-			dialogContents: "",
-			startCardDeletion: false
+			dialogContents: ""
 		};
 	}
 
 	async componentDidMount() {
-		//get pet schedule
 		try {
 			this.getTodaysEntries();
 		} catch (error) {
@@ -118,8 +116,11 @@ export class Today extends Component {
 		return moment().isAfter(moment(scheduledTime.endTime, "HHmm"));
 	};
 
+	x = value(0);
+
 	render() {
 		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName, deleteDialog } = this.state;
+		const valuesMap = { x: this.x };
 		return (
 			<Fragment>
 				<TodayContainer wrap>
@@ -128,9 +129,9 @@ export class Today extends Component {
 					</Heading>
 					{today.map((entry, i) => (
 						<FlexItem key={entry._id} order={moment(entry.updatedAt).format("H")}>
-							<CardContainer>
-								<DeleteIndicator full alignCenter justifyEnd>
-									<DeleteIcon column center>
+							<CardContainer parentValues={valuesMap}>
+								<DeleteIndicator parentValues={valuesMap} full alignCenter justifyEnd>
+									<DeleteIcon parentValues={valuesMap} stateX={this.state.x} column center>
 										<IoIosClose size={32} color="white" />
 										<Text size={200} color="white">
 											Delete
@@ -138,6 +139,7 @@ export class Today extends Component {
 									</DeleteIcon>
 								</DeleteIndicator>
 								<TodayCard
+									values={valuesMap}
 									key={entry._id}
 									ref={entry._id}
 									width={300}
@@ -146,11 +148,15 @@ export class Today extends Component {
 									paddingY={15}
 									position="relative"
 									index={i}
-									pose={moment(entry.updatedAt).diff(moment(), "minutes", true) >= -5 ? "expired" : "default"}
 									onDragEnd={() => {
 										this.confirmDelete(this.x, entry);
 									}}
-									onValueChange={{ x: x => (this.x = x) }}
+									onValueChange={{
+										x: x => {
+											this.x = x;
+											valuesMap.x = x;
+										}
+									}}
 									{...full}>
 									<Flex justifyBetween column full>
 										{entry.description && (
@@ -329,6 +335,9 @@ const TodayCard = styled(
 		dragEnd: {
 			transition: ({ from, to, velocity }) => spring({ from, to, velocity, stiffness: 750, damping: 50 })
 		},
+		passive: {
+			x: ["parentValues", v => console.log(v)]
+		},
 		enter: {
 			opacity: 1,
 			scale: 1,
@@ -372,7 +381,11 @@ const TodayCard = styled(
 	}
 `;
 
-const CardContainer = styled.div`
+const CardContainer = styled(
+	posed.div({
+		passive: {}
+	})
+)`
 	background-color: ${colors.red[400]};
 	border-radius: 5px;
 	position: relative;
@@ -384,8 +397,16 @@ const DeleteIndicator = Flex.extend`
 	z-index: 2;
 `;
 
-const DeleteIcon = Flex.extend`
-	margin-right: 25px;
+const DeleteIcon = styled(
+	posed(Flex)({
+		passive: {
+			x: ["x", v => (v < -200 ? (v = v + 75) : (v = 0)), true],
+			transition: ["x", v => (v > -101 ? "150ms" : "0ms")]
+		}
+	})
+)`
+	position: relative;
+	right: 25px;
 `;
 
 const disabled = {
