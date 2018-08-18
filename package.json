@@ -21,7 +21,6 @@
 		"react-dom": "^16.4.0",
 		"react-icons": "^2.2.7",
 		"react-pose": "^2.1.2",
-		"react-pull-to-refresh": "^1.1.2",
 		"react-scripts": "1.1.4",
 		"react-time-range": "^1.0.2",
 		"styled-components": "^3.3.3",

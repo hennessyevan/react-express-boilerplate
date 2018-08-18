@@ -4,7 +4,7 @@ import moment from "moment";
 import React, { Component, Fragment } from "react";
 import { IoIosCheckmark, IoIosClose, IoIosPlus } from "react-icons/lib/io";
 import posed, { PoseGroup } from "react-pose";
-import { transform, spring, value } from "popmotion";
+import { transform } from "popmotion";
 import styled from "styled-components";
 import Flex, { FlexItem } from "styled-flex-component";
 import { TimeOfDay, Ellipsis } from "./";
@@ -92,6 +92,7 @@ export class Today extends Component {
 		return !today.length ? false : match.length;
 	};
 
+<<<<<<< HEAD
 	confirmDelete = (x, entry) => {
 		if (x <= -200) {
 			this.setState({ deleteDialog: true, entryToBeDeleted: entry._id });
@@ -111,6 +112,22 @@ export class Today extends Component {
 			await this.setState({ today: newState });
 		} catch (error) {
 			toaster.danger(`Unable to delete entry`);
+=======
+	deleteEntry = async (x, entry) => {
+		if (x <= -80) {
+			try {
+				const token = getToken();
+				await axios.delete(`/entries/${entry._id}`, {
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				});
+				const newState = await this.state.today.filter(item => item._id !== entry._id);
+				await this.setState({ today: newState });
+			} catch (error) {
+				toaster.danger(`Unable to delete entry`);
+			}
+>>>>>>> parent of 39c49c1... Fix delete swipe
 		}
 	};
 
@@ -128,6 +145,7 @@ export class Today extends Component {
 					</Heading>
 					{today.map((entry, i) => (
 						<FlexItem key={entry._id} order={moment(entry.updatedAt).format("H")}>
+<<<<<<< HEAD
 							<CardContainer>
 								<DeleteIndicator full alignCenter justifyEnd>
 									<DeleteIcon column center>
@@ -161,25 +179,46 @@ export class Today extends Component {
 												}
 											/>
 										)}
-										<FlexItem>
-											<Flex alignCenter>
-												<IoIosCheckmark size={18} color={colors.green[500]} />
-												<Text marginLeft={5}>
-													{entry.user.firstName} fed {petName}
-												</Text>
-											</Flex>
-										</FlexItem>
-										<Flex justifyBetween>
-											<FlexItem>
-												<TimeOfDay time={entry.updatedAt} format="" />
-											</FlexItem>
-											<FlexItem>
-												<Text>{moment(entry.updatedAt).format("h:mma")}</Text>
-											</FlexItem>
+=======
+							<TodayCard
+								key={entry._id}
+								ref={entry._id}
+								width={300}
+								height={100}
+								marginBottom={15}
+								paddingX={17}
+								paddingY={15}
+								position="relative"
+								index={i}
+								canBeDeleted={moment(entry.updatedAt).diff(moment(), "minutes", true) >= -5}
+								onDragEnd={() => {
+									this.deleteEntry(this.x, entry);
+								}}
+								onValueChange={{ x: x => (this.x = x) }}
+								{...full}>
+								<Flex justifyBetween column full>
+									{entry.description && (
+										<Ellipsis size={16} onClick={() => this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)} />
+									)}
+									<FlexItem>
+										<Flex alignCenter>
+											<IoIosCheckmark size={18} color={colors.green[500]} />
+											<Text marginLeft={5}>
+												{entry.user.firstName} fed {petName}
+											</Text>
 										</Flex>
+									</FlexItem>
+									<Flex justifyBetween>
+>>>>>>> parent of 39c49c1... Fix delete swipe
+										<FlexItem>
+											<TimeOfDay time={entry.updatedAt} format="" />
+										</FlexItem>
+										<FlexItem>
+											<Text>{moment(entry.updatedAt).format("h:mma")}</Text>
+										</FlexItem>
 									</Flex>
-								</TodayCard>
-							</CardContainer>
+								</Flex>
+							</TodayCard>
 						</FlexItem>
 					))}
 					{schedule &&
@@ -323,16 +362,20 @@ const EmptyCard = styled(
 
 const TodayCard = styled(
 	posed(Card)({
+<<<<<<< HEAD
 		draggable: "x",
 		dragBounds: { left: -275, right: 0 },
+=======
+		draggable: ({ canBeDeleted }) => (canBeDeleted ? "x" : ""),
+		dragBounds: { left: -100, right: 0 },
+>>>>>>> parent of 39c49c1... Fix delete swipe
 		onDragEnd: { display: "none" },
-		dragEnd: {
-			transition: ({ from, to, velocity }) => spring({ from, to, velocity, stiffness: 750, damping: 50 })
+		passive: {
+			opacity: ["x", transform.interpolate([-100, -35, 0, 0], [0, 1, 1, 1])]
 		},
 		enter: {
 			opacity: 1,
 			scale: 1,
-			zIndex: 999,
 			delay: ({ i }) => i * 150,
 			transition: {
 				opacity: {
@@ -344,34 +387,40 @@ const TodayCard = styled(
 					stiffness: 200,
 					damping: 10
 				}
-			},
-			exit: {
-				opacity: 0,
-				scale: 0.9,
-				delay: ({ i }) => i * 150 + 150,
-				transition: {
-					opacity: {
-						ease: "easeInOut",
-						duration: 100
-					},
-					default: {
-						type: "spring",
-						stiffness: 200,
-						damping: 10
-					}
+			}
+		},
+		exit: {
+			opacity: 0,
+			scale: 0.9,
+			delay: ({ i }) => i * 150 + 150,
+			transition: {
+				opacity: {
+					ease: "easeInOut",
+					duration: 100
+				},
+				default: {
+					type: "spring",
+					stiffness: 200,
+					damping: 10
 				}
 			}
 		}
 	})
 )`
 	background-color: white;
+<<<<<<< HEAD
 	z-index: 3;
+=======
+	margin-right: 15px;
+	transition: opacity 300ms;
+>>>>>>> parent of 39c49c1... Fix delete swipe
 
 	@media screen and (max-width: 767px) {
 		margin-right: 0;
 	}
 `;
 
+<<<<<<< HEAD
 const CardContainer = styled.div`
 	background-color: ${colors.red[400]};
 	border-radius: 5px;
@@ -388,6 +437,8 @@ const DeleteIcon = Flex.extend`
 	margin-right: 25px;
 `;
 
+=======
+>>>>>>> parent of 39c49c1... Fix delete swipe
 const disabled = {
 	appearance: "tint3",
 	cursor: "default"
