@@ -18,8 +18,6 @@ export class Today extends Component {
 			schedule: props.user.pet && props.user.pet.schedule,
 			petName: props.user.pet && props.user.pet.name,
 			dialogIsOpen: false,
-			deleteDialog: false,
-			entryToBeDeleted: "",
 			dialogContents: "",
 			startCardDeletion: false
 		};
@@ -62,9 +60,7 @@ export class Today extends Component {
 	addEntry = async (petID, userID, scheduledTime) => {
 		const time = new Date();
 		if (!moment(time).isBetween(moment(scheduledTime.startTime, "HHmm"), moment(scheduledTime.endTime, "HHmm"))) {
-			toaster.warning(`Too Early`, {
-				description: `Please wait until ${moment(scheduledTime.startTime, "HHmm").format("ha")}`
-			});
+			toaster.warning(`Too Early`, { description: `Please wait until ${moment(scheduledTime.startTime, "HHmm").format("ha")}` });
 		} else {
 			try {
 				const token = await getToken();
@@ -92,27 +88,6 @@ export class Today extends Component {
 		return !today.length ? false : match.length;
 	};
 
-<<<<<<< HEAD
-	confirmDelete = (x, entry) => {
-		if (x <= -200) {
-			this.setState({ deleteDialog: true, entryToBeDeleted: entry._id });
-		}
-	};
-
-	deleteEntry = async () => {
-		const { entryToBeDeleted } = this.state;
-		try {
-			const token = getToken();
-			await axios.delete(`/entries/${entryToBeDeleted}`, {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			});
-			const newState = await this.state.today.filter(item => item._id !== entryToBeDeleted);
-			await this.setState({ today: newState });
-		} catch (error) {
-			toaster.danger(`Unable to delete entry`);
-=======
 	deleteEntry = async (x, entry) => {
 		if (x <= -80) {
 			try {
@@ -127,7 +102,6 @@ export class Today extends Component {
 			} catch (error) {
 				toaster.danger(`Unable to delete entry`);
 			}
->>>>>>> parent of 39c49c1... Fix delete swipe
 		}
 	};
 
@@ -136,7 +110,7 @@ export class Today extends Component {
 	};
 
 	render() {
-		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName, deleteDialog } = this.state;
+		const { today, schedule, dialogIsOpen, dialogContents, dialogTitle, petName } = this.state;
 		return (
 			<Fragment>
 				<TodayContainer wrap>
@@ -145,41 +119,6 @@ export class Today extends Component {
 					</Heading>
 					{today.map((entry, i) => (
 						<FlexItem key={entry._id} order={moment(entry.updatedAt).format("H")}>
-<<<<<<< HEAD
-							<CardContainer>
-								<DeleteIndicator full alignCenter justifyEnd>
-									<DeleteIcon column center>
-										<IoIosClose size={32} color="white" />
-										<Text size={200} color="white">
-											Delete
-										</Text>
-									</DeleteIcon>
-								</DeleteIndicator>
-								<TodayCard
-									key={entry._id}
-									ref={entry._id}
-									width={300}
-									height={100}
-									paddingX={17}
-									paddingY={15}
-									position="relative"
-									index={i}
-									pose={moment(entry.updatedAt).diff(moment(), "minutes", true) >= -5 ? "expired" : "default"}
-									onDragEnd={() => {
-										this.confirmDelete(this.x, entry);
-									}}
-									onValueChange={{ x: x => (this.x = x) }}
-									{...full}>
-									<Flex justifyBetween column full>
-										{entry.description && (
-											<Ellipsis
-												size={16}
-												onClick={() =>
-													this.openDialog(entry.user.firstName, entry.description, entry.updatedAt, entry.pet.name)
-												}
-											/>
-										)}
-=======
 							<TodayCard
 								key={entry._id}
 								ref={entry._id}
@@ -209,7 +148,6 @@ export class Today extends Component {
 										</Flex>
 									</FlexItem>
 									<Flex justifyBetween>
->>>>>>> parent of 39c49c1... Fix delete swipe
 										<FlexItem>
 											<TimeOfDay time={entry.updatedAt} format="" />
 										</FlexItem>
@@ -228,15 +166,7 @@ export class Today extends Component {
 									<FlexItem key={scheduledTime._id} full order={moment(scheduledTime.startTime, "HHmm").format("H")}>
 										<PoseGroup animateOnMount={true}>
 											{this.opportunityPassed(scheduledTime) ? (
-												<EmptyCard
-													key={scheduledTime._id}
-													i={i}
-													width={300}
-													height={100}
-													marginBottom={15}
-													padding={15}
-													paddingY={10}
-													{...disabled}>
+												<EmptyCard key={scheduledTime._id} i={i} width={300} height={100} marginBottom={15} padding={15} paddingY={10} {...disabled}>
 													<Flex full center column style={{ position: "relative" }}>
 														<FlexItem>
 															<IoIosClose size={28} color={colors.red[500]} />
@@ -274,22 +204,6 @@ export class Today extends Component {
 								) : null
 						)}
 				</TodayContainer>
-				<Dialog
-					isShown={deleteDialog}
-					type="danger"
-					hasHeader={false}
-					confirmLabel="Delete"
-					onCloseComplete={() =>
-						this.setState({
-							deleteDialog: false
-						})
-					}
-					onConfirm={close => {
-						this.deleteEntry();
-						close();
-					}}>
-					<Text>Are you sure you want to delete this entry?</Text>
-				</Dialog>
 				<Dialog
 					isShown={dialogIsOpen}
 					title={dialogTitle}
@@ -362,13 +276,8 @@ const EmptyCard = styled(
 
 const TodayCard = styled(
 	posed(Card)({
-<<<<<<< HEAD
-		draggable: "x",
-		dragBounds: { left: -275, right: 0 },
-=======
 		draggable: ({ canBeDeleted }) => (canBeDeleted ? "x" : ""),
 		dragBounds: { left: -100, right: 0 },
->>>>>>> parent of 39c49c1... Fix delete swipe
 		onDragEnd: { display: "none" },
 		passive: {
 			opacity: ["x", transform.interpolate([-100, -35, 0, 0], [0, 1, 1, 1])]
@@ -408,37 +317,14 @@ const TodayCard = styled(
 	})
 )`
 	background-color: white;
-<<<<<<< HEAD
-	z-index: 3;
-=======
 	margin-right: 15px;
 	transition: opacity 300ms;
->>>>>>> parent of 39c49c1... Fix delete swipe
 
 	@media screen and (max-width: 767px) {
 		margin-right: 0;
 	}
 `;
 
-<<<<<<< HEAD
-const CardContainer = styled.div`
-	background-color: ${colors.red[400]};
-	border-radius: 5px;
-	position: relative;
-	z-index: 1;
-`;
-
-const DeleteIndicator = Flex.extend`
-	position: absolute;
-	z-index: 2;
-`;
-
-const DeleteIcon = Flex.extend`
-	margin-right: 25px;
-`;
-
-=======
->>>>>>> parent of 39c49c1... Fix delete swipe
 const disabled = {
 	appearance: "tint3",
 	cursor: "default"
